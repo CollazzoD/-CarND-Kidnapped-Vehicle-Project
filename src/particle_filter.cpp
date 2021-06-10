@@ -31,7 +31,29 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    *   (and others in this file).
    */
   num_particles = 0;  // TODO: Set the number of particles
-
+  
+  if (is_initialized)
+    	return;
+  
+  std::default_random_engine gen;
+  
+  // Normal Distribution for x, y and theta
+  std::normal_distribution<double> dist_x(x, std[0]);
+  std::normal_distribution<double> dist_y(y, std[1]);
+  std::normal_distribution<double> dist_theta(theta, std[2]);
+  
+  for (int i = 0; i < num_particles; i++) {
+    Particle n;
+    n.id = i;
+    n.x = dist_x(gen);
+    n.y = dist_y(gen);
+    n.theta = dist_theta(gen);
+    n.weight = 1.0;
+    
+    particles.push_back(n);
+  }
+  
+  is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 

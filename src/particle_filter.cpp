@@ -21,6 +21,8 @@
 using std::string;
 using std::vector;
 
+#define YAW_RATE_ZERO_THRESHOLD 0.0001 // under this threshold, yaw rate is considered zero
+
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
   /**
    * TODO: Set the number of particles. Initialize all particles to 
@@ -48,6 +50,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     n.x = dist_x(gen);
     n.y = dist_y(gen);
     n.theta = dist_theta(gen);
+    n.theta = fmod(n.theta, 2.0 * M_PI); // limit theta in the interval [0, 2pi]
     n.weight = 1.0;
     
     particles.push_back(n);
@@ -65,7 +68,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
    *  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
-
+  
 }
 
 void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 

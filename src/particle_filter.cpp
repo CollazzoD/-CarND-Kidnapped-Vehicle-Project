@@ -35,7 +35,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   num_particles = 100;  // TODO: Set the number of particles
   
   if (is_initialized)
-    	return;
+    return;
   
   std::default_random_engine gen;
   
@@ -50,7 +50,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     n.x = dist_x(gen);
     n.y = dist_y(gen);
     n.theta = dist_theta(gen);
-    n.theta = fmod(n.theta, 2.0 * M_PI); // limit theta in the interval [0, 2pi]
     n.weight = 1.0;
     
     particles.push_back(n);
@@ -90,7 +89,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     p.x += dist_x(gen);
     p.y += dist_y(gen);
     p.theta += dist_theta(gen);
-    p.theta = fmod(p.theta, 2.0 * M_PI); // limit theta in the interval [0, 2pi]
   }
 }
 

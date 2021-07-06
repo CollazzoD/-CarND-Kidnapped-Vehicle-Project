@@ -145,7 +145,52 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+  for (Particle& p : particles) {
+    
+    // Collect valid landmarks
+    // NB: both landmarks and particles are in map coordinates
+    vector<LandmarkObs> valid_landmarks;
+    for (const auto& map_landmark : map_landmarks.landmark_list){
+      double distance = dist(p.x, p.y, map_landmark.x_f, map_landmark.y_f);
+      if( distance < sensor_range) { 
+        // if the landmark is within the sensor range, save it to predictions
+        LandmarkObs tmp;
+        tmp.x = map_landmark.x_f;
+        tmp.y = map_landmark.y_f;
+        tmp.id = map_landmark.id_i;
+        valid_landmarks.push_back(tmp);
+      }
+    }
+    
+    // Convert observations coordinates from vehicle to map
+    vector<LandmarkObs> observations_map;
+    double cos_theta = cos(p.theta);
+    double sin_theta = sin(p.theta);
 
+    for (const LandmarkObs& observation : observations){
+      LandmarkObs tmp;
+      tmp.x = p.x + cos_theta * observation.x - sin_theta * observation.y;
+      tmp.y = p.y + sin_theta * observation.x + cos_theta * observation.y;
+      observations_map.push_back(tmp);
+    }
+    
+    // Finds which observations correspond to which landmarks
+    dataAssociation(valid_landmarks, observations_map);
+    
+    // Calculate particle's weight
+    p.weight = 1.0; // reset weight
+    for (const LandmarkObs& observation : observations_map) {
+      auto landmark = map_landmarks.landmark_list.at(observation.id - 1);
+      double n_x = (observation.x - landmark.x_f) * (observation.x - landmark.x_f) / (2 * std_landmark[0] * std_landmark[0]);
+      double n_y = (observation.y - landmark.y_f) * (observation.y - landmark.y_f) / (2 * std_landmark[1] * std_landmark[1]);
+      double c =  1.0 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
+      
+      double w = c * exp(- (n_x + n_y));
+      p.weight *= w;
+    }
+    
+    weights.push_back(p.weight);
+  }
 }
 
 void ParticleFilter::resample() {
